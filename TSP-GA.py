@@ -92,10 +92,10 @@ for i in range(0,len(ind_1.route)):
 ind_1 = generateIndividual(cities)
 ind_2 = generateIndividual(cities)
 ind_3 = ind_1.genNext(ind_2)
-for i in range(0,nCities):
+for i in range(0,len(ind_1.route)):
     print(ind_1.route[i].id,end = ' ')
 print()
-for i in range(0,nCities):
+for i in range(0,len(ind_2.route)):
     print(ind_2.route[i].id,end = ' ')
 print()
 for i in range(0,len(ind_3.route)):
