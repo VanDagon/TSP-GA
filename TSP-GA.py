@@ -14,7 +14,7 @@ class City:
     
 def generateCities():
     cities = []
-    nCities = 4 + int(random.random() * 4) ## range is 7-25 cities
+    nCities = 10 + int(random.random() * 0) ## range is 7-25 cities
     for i in range(0,nCities):
         newx = int (random.random() * 1000) 
         newy = int (random.random() * 1000)
@@ -24,7 +24,7 @@ def generateCities():
 
 def generateRoute(cities):
     route = random.sample(cities,len(cities))
-    route.append(route[0])
+    route.append(route[0]) ####### FIX THIS
     return route
 
 class Individual:
@@ -50,12 +50,21 @@ class Individual:
         n2 = int(random.random() * l)
 
         start = min(n1,n2)
+        print(start)
         end = max(n1,n2)
+        print(end)
 
         for i in range(start,end):
             gene1.append(self.route[i])
-        
-        gene2 = [c for c in parent2.route if c not in self.route]
+        print("GENE 1: ", end = '')
+        for i in range(len(gene1)):
+            print(gene1[i].id,end= ' ')
+        print()
+        gene2 = [c for c in parent2.route if c not in gene1]
+        print("GENE 2: ", end = '')
+        for i in range(len(gene2)):
+            print(gene2[i].id,end= ' ')
+        print()
 
         for i in range(len(gene1)):
             gene2.insert(start+i,gene1[i])
