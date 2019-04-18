@@ -1,10 +1,12 @@
 import math, random, pip as np
 
 class City:
+    nc = 0 ## number of cities
     def __init__(self, x, y, id):
         self.x = x
         self.y = y
-        self.id = id
+        self.id = City.nc
+        City.nc += 1
     
     def distance(self,nextCity):
         x_difference = self.x - nextCity.x
@@ -12,6 +14,9 @@ class City:
         result = math.sqrt(x_difference**2 + y_difference**2)
 
         return result
+
+    def __repr__(self):
+        return repr(self.id)
     
 def generateCities():
     cities = []
@@ -71,8 +76,23 @@ class Individual:
 
         return child
 
-def generateIndividual(cities): ## static int as id?!
-    newIndividual = Individual(generateRoute(cities))
+    def __repr__(self):
+        return repr(self.totalDistance)
+
+class generation():
+    gen_id = 0
+
+    def __init__(self,newGen):
+        self.gen_id = generation.gen_id
+        generation.gen_id = generation.gen_id + 1
+        self.individuals = []
+        self.individuals.append(newGen)
+
+
+def generateIndividual(cities): 
+    newRoute = generateRoute(cities)
+    newIndividual = Individual(newRoute)
+    newIndividual.getDistance()
 
     return newIndividual
 
@@ -143,7 +163,6 @@ def selectPool(population): ## ones below (mean - standardDeviation) will be sel
 
 def nextGeneration(pool):
     newGen = []
-    nMax = 1000 ## maximum amount of children per generation
     newGen.extend(pool[0]) ## add elites to next gen
     pool_array = []
     pool_array.extend(pool[0])
@@ -151,12 +170,11 @@ def nextGeneration(pool):
     pool_array.extend(pool[2])
     poolLen = len(pool_array)
     pool_array = random.sample(pool_array,poolLen)
-    if (nMax>poolLen): ## if quantity of individuals is less than nMax, set nMax to the quantity
-        nMax = poolLen 
     
-    for i in range(nMax): ## use nMax as loop index max
-        j = int(random.random() * nMax)
+    for i in range(poolLen): ## use nMax as loop index max
+        j = int(random.random() * poolLen)
         child = pool_array[i].breed(pool_array[j])
+        child.getDistance()
         newGen.append(child) 
 
     return newGen
@@ -210,7 +228,8 @@ for i in range(0,len(ind_3.route)):
 dis = []
 for i in range(len(gen_1)):
     dis.append(gen_1[i].getDistance()) """
-##print(dis) 
+##print(dis)
+ 
 """ gen_1_mean = getMean(gen_1) ## test gen_2 generation
 gen_1_stDev = getStandardDeviation(gen_1)
 print (gen_1_mean)
@@ -219,6 +238,11 @@ pool_1 = selectPool(gen_1)
 gen_2 = nextGeneration(pool_1)
 print(len(gen_2)) """
 
+res = loopGens(20,15,cities)
+
+print(len(res[0][0]))
+print("NEXT",'\n')
+print(len(res[0][19]))
 
 ## end testing      
 
