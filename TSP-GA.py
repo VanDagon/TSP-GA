@@ -1,3 +1,5 @@
+### obsolete
+
 import math, random, pip as np
 
 class City:
