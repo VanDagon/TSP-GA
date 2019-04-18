@@ -50,7 +50,7 @@ class Individual:
 
         return self.totalDistance
     
-    def genNext(self,parent2):
+    def breed(self,parent2):
         gene1 = [] # inherited from self
         gene2 = [] # inherited from parent2
         l = len(self.route)
@@ -99,7 +99,7 @@ def getStandardDeviation(population):
     sum = 0
 
     for i in range(popLen): 
-        sum += (population.totalDistance - mean) ** 2
+        sum += (population[i].totalDistance - mean) ** 2
     result = math.sqrt(sum)/(popLen - 1)
 
     return result
@@ -124,13 +124,60 @@ def selectPool(population): ## ones below (mean - standardDeviation) will be sel
         else:
             if (random.random() * 100 < bad_rate):
                 bad_pool.append(population[i])
-    
-    selectedPool.extend(elite_pool)
-    selectedPool.extend(good_pool)
-    selectedPool.extend(bad_pool)
+
+    """ print("ELITE:",end = ' ') ## testing of selection pool
+    elite = [c.totalDistance for c in elite_pool]
+    print(elite) 
+    print("GOOD:",end = ' ')
+    elite = [c.totalDistance for c in good_pool]
+    print(elite) 
+    print("BAD:",end = ' ')
+    elite = [c.totalDistance for c in bad_pool]
+    print(elite)  """
+
+    selectedPool.append(elite_pool)
+    selectedPool.append(good_pool)
+    selectedPool.append(bad_pool)
 
     return selectedPool
 
+def nextGeneration(pool):
+    newGen = []
+    nMax = 1000 ## maximum amount of children per generation
+    newGen.extend(pool[0]) ## add elites to next gen
+    pool_array = []
+    pool_array.extend(pool[0])
+    pool_array.extend(pool[1])
+    pool_array.extend(pool[2])
+    poolLen = len(pool_array)
+    pool_array = random.sample(pool_array,poolLen)
+    if (nMax>poolLen): ## if quantity of individuals is less than nMax, set nMax to the quantity
+        nMax = poolLen 
+    
+    for i in range(nMax): ## use nMax as loop index max
+        j = int(random.random() * nMax)
+        child = pool_array[i].breed(pool_array[j])
+        newGen.append(child) 
+
+    return newGen
+
+def loopGens(nGen,nInitial,cities):
+    gen_book = []
+    pool_book = []
+    gen_1 = generateInitialPopulation(nInitial,cities)
+    gen_book.append(gen_1)
+    
+    for i in range(nGen):
+        new_pool = selectPool(gen_book[i])
+        pool_book.append(new_pool)
+        new_gen = nextGeneration(pool_book[i])
+        gen_book.append(new_gen)
+    
+    result = []
+    result.append(gen_book)
+    result.append(pool_book)
+    return result
+    
 
 
 ## for testing purposes
@@ -159,12 +206,18 @@ print()
 for i in range(0,len(ind_3.route)):
     print(ind_3.route[i].id,end = ' ') """
 
-gen_1 = generateInitialPopulation(10,cities) ## initial population test
+""" gen_1 = generateInitialPopulation(40,cities) ## initial population test
 dis = []
 for i in range(len(gen_1)):
-    dis.append(gen_1[i].getDistance())
-## print(dis) 
-
+    dis.append(gen_1[i].getDistance()) """
+##print(dis) 
+""" gen_1_mean = getMean(gen_1) ## test gen_2 generation
+gen_1_stDev = getStandardDeviation(gen_1)
+print (gen_1_mean)
+print (gen_1_stDev)
+pool_1 = selectPool(gen_1)
+gen_2 = nextGeneration(pool_1)
+print(len(gen_2)) """
 
 
 ## end testing      
