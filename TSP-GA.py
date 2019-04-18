@@ -83,7 +83,7 @@ def generateInitialPopulation(n,cities):
 
     return population
 
-def getMedian(population):
+def getMean(population):
     sum = 0
     popLen = len(population)
 
@@ -95,19 +95,41 @@ def getMedian(population):
 
 def getStandardDeviation(population):
     popLen = len(population)
-    median = getMedian(population)
+    mean = getMean(population)
     sum = 0
 
     for i in range(popLen): 
-        sum += (population.totalDistance - median) ** 2
-    result = sqrt(sum)/popLen
+        sum += (population.totalDistance - mean) ** 2
+    result = math.sqrt(sum)/(popLen - 1)
 
     return result
 
-def selectPool(population): ## ones below (median - standardDeviation) will be selected as elite
-                            ## ones below median have 70% chance of selection
-                            ## ones above median have only 30% chance of selection
+def selectPool(population): ## ones below (mean - standardDeviation) will be selected as elite
+    good_rate = 70          ## ones below mean have 70% chance of selection
+    bad_rate = 40           ## ones above or equal to mean have only 40% chance of selection
+    selectedPool = []
+    elite_pool = []
+    good_pool = []
+    bad_pool = []
+    mean = getMean(population)
+    stDev = getStandardDeviation(population)
+    popLen = len(population)
+
+    for i in range(popLen):
+        if (population[i].totalDistance < mean-stDev):
+            elite_pool.append(population[i])
+        elif (population[i].totalDistance < mean):
+            if (random.random() * 100 < good_rate):
+                good_pool.append(population[i])
+        else:
+            if (random.random() * 100 < bad_rate):
+                bad_pool.append(population[i])
     
+    selectedPool.extend(elite_pool)
+    selectedPool.extend(good_pool)
+    selectedPool.extend(bad_pool)
+
+    return selectedPool
 
 
 
