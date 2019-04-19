@@ -1,11 +1,13 @@
+#   C:/Users/Lejan/pythonwork
 import math, random, sys
 
 class City:
-    nc = 0 ## number of cities
+    nc = 0 ## number of city instances
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.id = City.nc
+        self.name = str(City.nc)
         City.nc += 1
     
     def distance(self,nextCity):
@@ -16,12 +18,26 @@ class City:
         return result
 
     def __repr__(self):
-        return repr(self.id)
+        return repr([self.name,self.x,self.y])
 
 def generateRoute(cities):
     route = random.sample(cities,len(cities))
 
     return route
+
+def readCityFile(f):
+    fi = open(default_parameters[9],"r")
+    cities = []
+
+    for line in fi:
+        currentLine = line.split()
+        currentCity = City(int(currentLine[1]),int(currentLine[2]))
+        currentCity.name = currentLine[0]
+        cities.append(currentCity)
+
+    fi.close()
+    return cities
+
 
 class Individual:
     def __init__(self,route): 
@@ -168,16 +184,20 @@ class genBook():
         self.nInitial = nInitial
         self.nCities = nCities
         self.nGen = nGen
-        self.cities = self.generateCities()   
+        if (default_parameters[9]=="AUTO"):
+            self.cities = self.generateCities()
+        else:
+            self.cities = readCityFile(default_parameters[9])
+
         self.gen_book.append(self.generateInitialPopulation())
 
-        for i in range(nGen-1):
+        for _ in range(nGen-1):
             self.breedNext()
 
     def generateCities(self):
         self.cities = []
 
-        for i in range(0,self.nCities):
+        for _ in range(0,self.nCities):
             newx = int (random.random() * default_parameters[4]) 
             newy = int (random.random() * default_parameters[5])
             self.cities.append(City(newx,newy))
@@ -193,7 +213,7 @@ class genBook():
 
     def generateInitialPopulation(self):
         population = []
-        for i in range(self.nInitial):
+        for _ in range(self.nInitial):
             population.append(self.generateIndividual())
 
         gen_0 = generation(population)
@@ -208,15 +228,16 @@ class genBook():
 ## default parameters in the following order:
 ## (Caution: args[0] is reserved for script name, so the indexing starts with 1)
 ## [1] nInitial ==> quantity of individuals in initial generation
-## [2] nCities ==> number of cities
+## [2] nCities ==> number of cities, only used for auto-generated cities (in conjunction with "AUTO" in param 9)
 ## [3] nGen ==> number of generations to be bred
 ## [4] XWidth ==> width of x-coordinate of the map
 ## [5] YWidth ==> width of y-coordinate of the map
 ## [6] goodRate ==> percent chance that a 'good' individual (with below mean totalDistance) will be selected
 ## [7] badRate ==> percent chance that a 'bad' individual (with above mean totalDistance) will be selected
-## [8] citiesPath ==> path to the file that contains cities ## reading cities from files not implemented yet ##
-##       input the word "AUTO" to generate random cities
-## [9] popMax ==> the hard cap on quantity of individuals in every generation ## not implemented yet
+## [8] popMax ==> the hard cap on quantity of individuals in every generation ## not implemented yet
+## [9] citiesPath ==> path to the file that contains cities 
+##     file formatting should be one city per line ==> [Cityname][whitespace][x-coordinate][whitespace][y-coordinate][endline] 
+##     input the word "AUTO" to generate random cities
 ## [10] popMaxSwitch ==> switch for hard cap on population (for parameter 9), has value 0 or 1
 
 ## to skip a certain parameter, input 0 and that one will be defaulted
@@ -238,7 +259,3 @@ for i in range(1,len(sys.argv)):
 
 ## main:
 genBook1 = genBook(default_parameters[1],default_parameters[2],default_parameters[3])
-for i in range(default_parameters[3]):
-    print(i,genBook1.gen_book[i])
-""" for i in range(100): ## test
-    print(i,' --- ',genBook1.gen_book[i].standardDeviation,' --- ',genBook1.gen_book[i].minimum) """
