@@ -1,4 +1,4 @@
-import math, random, pip as np
+import math, random, sys
 
 class City:
     nc = 0 ## number of cities
@@ -93,7 +93,7 @@ class generation():
 
     def getStandardDeviation(self):
         popLen = len(self.population)
-        mean = self.getMean() ## :@ :@ :@
+        mean = self.getMean() 
         sum = 0
 
         for i in range(popLen): 
@@ -108,8 +108,8 @@ class generation():
         return self.minimum
 
     def selectPool(self): ## ones below (mean - standardDeviation) will be selected as elite
-        good_rate = 70          ## ones below mean have 70% chance of selection
-        bad_rate = 40           ## ones above or equal to mean have only 40% chance of selection
+        good_rate = default_parameters[7] ## ones below mean have 70% chance of selection
+        bad_rate = default_parameters[8] ## ones above or equal to mean have only 40% chance of selection
         selectedPool = []
         elite_pool = []
         good_pool = []
@@ -178,8 +178,8 @@ class genBook():
         self.cities = []
 
         for i in range(0,self.nCities):
-            newx = int (random.random() * 1000) 
-            newy = int (random.random() * 1000)
+            newx = int (random.random() * default_parameters[4]) 
+            newy = int (random.random() * default_parameters[5])
             self.cities.append(City(newx,newy))
 
         return self.cities 
@@ -205,7 +205,40 @@ class genBook():
         self.genCount += 1
 
 
-## main()
-genBook1 = genBook(25,35,100)
+## default parameters in the following order:
+## (Caution: args[0] is reserved for script name, so the indexing starts with 1)
+## [1] nInitial ==> quantity of individuals in initial generation
+## [2] nCities ==> number of cities
+## [3] nGen ==> number of generations to be bred
+## [4] XWidth ==> width of x-coordinate of the map
+## [5] YWidth ==> width of y-coordinate of the map
+## [6] goodRate ==> percent chance that a 'good' individual (with below mean totalDistance) will be selected
+## [7] badRate ==> percent chance that a 'bad' individual (with above mean totalDistance) will be selected
+## [8] citiesPath ==> path to the file that contains cities ## reading cities from files not implemented yet ##
+##       input the word "AUTO" to generate random cities
+## [9] popMax ==> the hard cap on quantity of individuals in every generation ## not implemented yet
+## [10] popMaxSwitch ==> switch for hard cap on population (for parameter 9), has value 0 or 1
+
+## to skip a certain parameter, input 0 and that one will be defaulted
+parameter_names = ["placeholder_name","nInitial","nCities","nGen","XWidth","YWidth","goodRate","badRate","popMax","citiesPath","popMaxSwitch"]
+default_parameters = ["placeholder.py",20, 15, 40, 1000, 1000, 70, 40, 50, "AUTO", 0]
+
+## parse console input
+for i in range(1,len(sys.argv)):
+    if (sys.argv[i] != "0"):
+        if (i==9):
+            default_parameters[i] = sys.argv[i]
+        else:
+            n = int(sys.argv[i])
+            if (n>=0):
+                default_parameters[i] = int(sys.argv[i])
+            else:
+                print("parameter",i,":",parameter_names[i],"is negative. This parameter will take the default value of:",default_parameters[i])
+##print(default_parameters)
+
+## main:
+genBook1 = genBook(default_parameters[1],default_parameters[2],default_parameters[3])
+for i in range(default_parameters[3]):
+    print(i,genBook1.gen_book[i])
 """ for i in range(100): ## test
     print(i,' --- ',genBook1.gen_book[i].standardDeviation,' --- ',genBook1.gen_book[i].minimum) """
