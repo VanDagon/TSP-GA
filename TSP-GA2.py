@@ -1,4 +1,3 @@
-#   C:/Users/Lejan/pythonwork
 import math, random, sys
 
 class City:
@@ -148,11 +147,16 @@ class generation():
         selectedPool.append(good_pool)
         selectedPool.append(bad_pool)
         self.selected = selectedPool
+
         return self.selected
 
     def nextGeneration(self,nNext): ## breeds new generation from selected pool
         newPop = []
+        minPop = default_parameters[1]
+        while (len(newPop)<=)
+
         newPop.extend(self.selected[0]) ## add elites to new population
+        print(self.selected)
         pool_array = []
         pool_array.extend(self.selected[0])
         pool_array.extend(self.selected[1])
@@ -172,7 +176,7 @@ class generation():
             newPop.append(newInd)
 
         newGen = generation(newPop)
-        return newGen
+        return newGen 
     
     def __repr__(self):
         return repr(self.population)
@@ -245,17 +249,28 @@ parameter_names = ["placeholder_name","nInitial","nCities","nGen","XWidth","YWid
 default_parameters = ["placeholder.py",20, 15, 40, 1000, 1000, 70, 40, 50, "AUTO", 0]
 
 ## parse console input
-for i in range(1,len(sys.argv)):
+argCount = len(sys.argv)
+if (argCount < 2):
+    print("All parameters set to default values.")
+if (argCount > len(default_parameters)):
+    argCount = len(default_parameters)
+
+for i in range(1,argCount):
     if (sys.argv[i] != "0"):
         if (i==9):
             default_parameters[i] = sys.argv[i]
+            print("parameter",i,":",parameter_names[i],"set to",sys.argv[i])
         else:
             n = int(sys.argv[i])
             if (n>=0):
                 default_parameters[i] = int(sys.argv[i])
+                print("parameter",i,":",parameter_names[i],"set to",sys.argv[i])
             else:
                 print("parameter",i,":",parameter_names[i],"is negative. This parameter will take the default value of:",default_parameters[i])
-##print(default_parameters)
+print(default_parameters)
 
 ## main:
 genBook1 = genBook(default_parameters[1],default_parameters[2],default_parameters[3])
+""" for i in range(default_parameters[3]):
+    print(i,genBook1.gen_book[i])
+    print() """
