@@ -122,7 +122,50 @@ class generation():
         self.minimum = min(distances)
         return self.minimum
 
+    ### use sort instead of standard Deviation
     def selectPool(self): ## ones below (mean - standardDeviation) will be selected as elite
+        
+        self.selected = []
+        self.elite = []
+        sortedPool = self.population
+        sortedPool.sort(key=lambda x: x.totalDistance)
+        total_l = len(self.population)
+        elite_l = int(total_l / 5) ## take top 20% as elite 
+        good_l = int (total_l / 2) ## top 21-50% as good
+
+        for i in range(total_l):
+            if (i < elite_l):
+                self.selected.append(sortedPool[i])
+                self.elite.append(sortedPool[i])
+            elif (i < good_l):
+                if (random.random()*100 < default_parameters[6]):
+                    self.selected.append(sortedPool[i])
+            else:
+                if (random.random()*100 < default_parameters[7]):
+                    self.selected.append(sortedPool[i])
+
+        return self.selected 
+    
+    def nextGeneration(self,nNext): ## breeds new generation from selected pool
+        
+        newPop = []
+        left = nNext
+        pool = self.selected
+        total_l = len(pool)
+        elite_l = len(self.elite)
+        newPop.extend(self.elite)
+        left = left - elite_l
+
+        for _ in range(left):
+            i = int(random.random() * total_l)
+            j = int(random.random() * total_l)
+            newInd = pool[i].breed(pool[j])
+            newPop.append(newInd)
+
+        newGen = generation(newPop)
+        return newGen
+
+    """     def selectPool(self): ## ones below (mean - standardDeviation) will be selected as elite
         good_rate = default_parameters[7] ## ones below mean have 70% chance of selection
         bad_rate = default_parameters[8] ## ones above or equal to mean have only 40% chance of selection
         selectedPool = []
@@ -148,38 +191,32 @@ class generation():
         selectedPool.append(bad_pool)
         self.selected = selectedPool
 
-        return self.selected
+        return self.selected  """
 
-    def nextGeneration(self,nNext): ## breeds new generation from selected pool
+    """     def nextGeneration(self,nNext): ## breeds new generation from selected pool
         newPop = []
-        minPop = default_parameters[1]
-        while (len(newPop)<=)
-
-        newPop.extend(self.selected[0]) ## add elites to new population
+        left = nNext
+        pool = self.selected[0]
+        pool.extend(self.selected[1])
+        pool.extend(self.selected[2])
+        l = len(pool)
         print(self.selected)
-        pool_array = []
-        pool_array.extend(self.selected[0])
-        pool_array.extend(self.selected[1])
-        pool_array.extend(self.selected[2])
-        poolLen = len(pool_array)
-        eliteLen = len(newPop)
+        newPop.extend(self.selected[0])
+        left -= len(self.selected[0])
 
-        if (eliteLen >= nNext):
-            newGen = generation(newPop)
-            return newGen
-        else:
-            nNext = nNext - eliteLen
-
-        for i in range(nNext):
-            j = int(random.random() * poolLen) % nNext
-            newInd = pool_array[i%poolLen].breed(pool_array[j])
+        for _ in range(left):
+            i = int(random.random() * l)
+            j = int(random.random() * l)
+            newInd = pool[i].breed(pool[j])
             newPop.append(newInd)
 
         newGen = generation(newPop)
-        return newGen 
+        #print(newGen)
+        return newGen """
+
     
     def __repr__(self):
-        return repr(self.population)
+        return repr(self.population) 
 
 class genBook():
     gen_book = []
@@ -226,6 +263,7 @@ class genBook():
 
     def breedNext(self):
         self.gen_book.append(self.gen_book[self.genCount].nextGeneration(self.nInitial))
+        print(self.gen_book[self.genCount].getMin())
         self.genCount += 1
 
 
@@ -246,12 +284,14 @@ class genBook():
 
 ## to skip a certain parameter, input 0 and that one will be defaulted
 parameter_names = ["placeholder_name","nInitial","nCities","nGen","XWidth","YWidth","goodRate","badRate","popMax","citiesPath","popMaxSwitch"]
-default_parameters = ["placeholder.py",20, 15, 40, 1000, 1000, 70, 40, 50, "AUTO", 0]
+default_parameters = ["placeholder.py",80, 15, 100, 1000, 1000, 70, 40, 50, "AUTO", 0]
 
 ## parse console input
+## sample input: python TSP-GA.py 25 20 30 1500 1500 75 45 50 "TSP-GA-cities.txt" 0
 argCount = len(sys.argv)
 if (argCount < 2):
     print("All parameters set to default values.")
+    print()
 if (argCount > len(default_parameters)):
     argCount = len(default_parameters)
 
