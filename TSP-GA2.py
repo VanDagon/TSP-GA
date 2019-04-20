@@ -1,4 +1,4 @@
-import math, random, sys
+import math, random, sys, numpy
 
 class City:
     nc = 0 ## number of city instances
@@ -6,7 +6,7 @@ class City:
         self.x = x
         self.y = y
         self.id = City.nc
-        self.name = str(City.nc)
+        self.name = "City" + str(City.nc)
         City.nc += 1
     
     def distance(self,nextCity):
@@ -42,8 +42,8 @@ class Individual:
     def __init__(self,route): 
         self.route = route
         self.totalDistance = 0
-        ##self.fitness = 0 ## not implemented yet
         self.totalDistance = self.getDistance()
+        self.fitness = float(1 / self.totalDistance)
     
     def getDistance(self):
         routeLength = len(self.route)
@@ -123,28 +123,44 @@ class generation():
         return self.minimum
 
     ### use sort instead of standard Deviation
-    def selectPool(self): ## ones below (mean - standardDeviation) will be selected as elite
-        
+    def selectPool(self): 
+
         self.selected = []
         self.elite = []
         sortedPool = self.population
-        sortedPool.sort(key=lambda x: x.totalDistance)
+        sortedPool.sort(key=lambda x: x.fitness, reverse=True)
+        sortedFitness = [c.fitness for c in sortedPool]
+        weights = numpy.cumsum(sortedFitness)
+        totalFitness = sum(sortedFitness)
+        percentages = [((c*100)/totalFitness) for c in weights]
         total_l = len(self.population)
-        elite_l = int(total_l / 5) ## take top 20% as elite 
-        good_l = int (total_l / 2) ## top 21-50% as good
+        elite_l = int(total_l * 0.20) ## take top 20% as elite 
+
+        for i in range(elite_l): ## add elites to new gen
+            self.elite.append(sortedPool[i])
+            self.selected.append(sortedPool[i])
+
+        leftToBreed = len(self.population) - len(self.elite)
+        
+        for _ in range(leftToBreed):
+            irand = random.random() * 100
+            for i in range(elite_l,total_l):
+                if irand <= percentages[i]:
+                    self.selected.append(sortedPool[i])
+                    break
+        return self.selected 
+
+    def mutate(self,gen):
+        mutation_chance = 15
+        total_l = len(gen.population)
 
         for i in range(total_l):
-            if (i < elite_l):
-                self.selected.append(sortedPool[i])
-                self.elite.append(sortedPool[i])
-            elif (i < good_l):
-                if (random.random()*100 < default_parameters[6]):
-                    self.selected.append(sortedPool[i])
-            else:
-                if (random.random()*100 < default_parameters[7]):
-                    self.selected.append(sortedPool[i])
-
-        return self.selected 
+            if (int(random.random() * 100) < mutation_chance):
+                iMax = len(gen.population[i].route)
+                a = int(random.random() * iMax)
+                b = int(random.random() * iMax)
+                gen.population[i].route[a], gen.population[i].route[b] = gen.population[i].route[b], gen.population[i].route[a]
+        return gen
     
     def nextGeneration(self,nNext): ## breeds new generation from selected pool
         
@@ -163,57 +179,8 @@ class generation():
             newPop.append(newInd)
 
         newGen = generation(newPop)
+        self.mutate(newGen)
         return newGen
-
-    """     def selectPool(self): ## ones below (mean - standardDeviation) will be selected as elite
-        good_rate = default_parameters[7] ## ones below mean have 70% chance of selection
-        bad_rate = default_parameters[8] ## ones above or equal to mean have only 40% chance of selection
-        selectedPool = []
-        elite_pool = []
-        good_pool = []
-        bad_pool = []
-        mean = self.getMean()
-        stDev = self.getStandardDeviation()
-        popLen = len(self.population)
-
-        for i in range(popLen):
-            if (self.population[i].totalDistance < mean-stDev):
-                elite_pool.append(self.population[i])
-            elif (self.population[i].totalDistance < mean):
-                if (random.random() * 100 < good_rate):
-                    good_pool.append(self.population[i])
-            else:
-                if (random.random() * 100 < bad_rate):
-                    bad_pool.append(self.population[i])
-
-        selectedPool.append(elite_pool)
-        selectedPool.append(good_pool)
-        selectedPool.append(bad_pool)
-        self.selected = selectedPool
-
-        return self.selected  """
-
-    """     def nextGeneration(self,nNext): ## breeds new generation from selected pool
-        newPop = []
-        left = nNext
-        pool = self.selected[0]
-        pool.extend(self.selected[1])
-        pool.extend(self.selected[2])
-        l = len(pool)
-        print(self.selected)
-        newPop.extend(self.selected[0])
-        left -= len(self.selected[0])
-
-        for _ in range(left):
-            i = int(random.random() * l)
-            j = int(random.random() * l)
-            newInd = pool[i].breed(pool[j])
-            newPop.append(newInd)
-
-        newGen = generation(newPop)
-        #print(newGen)
-        return newGen """
-
     
     def __repr__(self):
         return repr(self.population) 
@@ -263,11 +230,12 @@ class genBook():
 
     def breedNext(self):
         self.gen_book.append(self.gen_book[self.genCount].nextGeneration(self.nInitial))
+        ##print(self.gen_book[self.genCount].population)
         print(self.gen_book[self.genCount].getMin())
         self.genCount += 1
 
 
-## default parameters in the following order:
+## parameters in the following order:
 ## (Caution: args[0] is reserved for script name, so the indexing starts with 1)
 ## [1] nInitial ==> quantity of individuals in initial generation
 ## [2] nCities ==> number of cities, only used for auto-generated cities (in conjunction with "AUTO" in param 9)
@@ -284,7 +252,7 @@ class genBook():
 
 ## to skip a certain parameter, input 0 and that one will be defaulted
 parameter_names = ["placeholder_name","nInitial","nCities","nGen","XWidth","YWidth","goodRate","badRate","popMax","citiesPath","popMaxSwitch"]
-default_parameters = ["placeholder.py",80, 15, 100, 1000, 1000, 70, 40, 50, "AUTO", 0]
+default_parameters = ["placeholder.py",50, 15, 50, 1000, 1000, 70, 40, 50, "TSP-GA-cities.txt", 0]
 
 ## parse console input
 ## sample input: python TSP-GA.py 25 20 30 1500 1500 75 45 50 "TSP-GA-cities.txt" 0
