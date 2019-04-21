@@ -282,10 +282,15 @@ genBook1 = genBook(default_parameters[1],default_parameters[2],default_parameter
 print(genBook1.gen_book[0].population)
 gen1 = [c.totalDistance for c in genBook1.gen_book[0].population]
 gen_final = [c.totalDistance for c in genBook1.gen_book[genBook1.genCount].population]
-plt.plot(gen1,'go',linewidth=2)
-plt.ylabel('some numbers')
-plt.show()
-plt.plot(gen_final,'ro',linewidth=1)
+cities_x = []
+cities_y = []
+city_labels = [c.name for c in genBook1.cities]
+cities_x = [c.x for c in genBook1.cities]
+cities_y = [c.y for c in genBook1.cities]
+q = plt.plot(cities_x,cities_y,'go',linewidth=1)
+for i in range(len(city_labels)):
+    plt.annotate(city_labels[i],(cities_x[i],cities_y[i]))
+
 plt.ylabel('some numbers')
 plt.show()
 """ for i in range(default_parameters[3]):
