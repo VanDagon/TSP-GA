@@ -47,17 +47,17 @@ class Individual:
     
     def getDistance(self):
         routeLength = len(self.route)
-
+        dist = 0
         for i in range(0,routeLength):
             currentCity = self.route[i]
             if (i<routeLength-1):    
                 nextCity = self.route[i+1]
-                self.totalDistance += currentCity.distance(nextCity)
+                dist += currentCity.distance(nextCity)
             else:
                 nextCity = self.route[0]
-                self.totalDistance += currentCity.distance(nextCity)
+                dist += currentCity.distance(nextCity)
 
-        return self.totalDistance
+        return dist
     
     def breed(self,parent2):
         gene1 = [] # inherited from self
@@ -81,7 +81,7 @@ class Individual:
         return child
 
     def __repr__(self):
-        return repr(self.totalDistance)
+        return repr(self.route)
 
 class generation():
     gen_id = 0
@@ -187,11 +187,13 @@ class generation():
 
 class genBook():
     gen_book = []
+    gen_book_mins = []
 
     def __init__(self,nInitial,nCities,nGen):
         self.nInitial = nInitial
         self.nCities = nCities
         self.nGen = nGen
+        self.genCount = 0
         if (default_parameters[9]=="AUTO"):
             self.cities = self.generateCities()
         else:
@@ -200,6 +202,7 @@ class genBook():
         self.gen_book.append(self.generateInitialPopulation())
 
         for _ in range(nGen-1):
+            self.gen_book_mins.append(self.gen_book[self.genCount].getMin())
             self.breedNext()
 
     def generateCities(self):
@@ -230,10 +233,37 @@ class genBook():
 
     def breedNext(self):
         self.gen_book.append(self.gen_book[self.genCount].nextGeneration(self.nInitial))
-        ##print(self.gen_book[self.genCount].population)
-        print(self.gen_book[self.genCount].getMin())
         self.genCount += 1
 
+    def plotDistanceGraph(self): ## plots the progress of minimal distances over the generations
+        q = plt.plot(self.gen_book_mins)
+        plt.savefig("DistanceGraph.png")
+        plt.close()
+
+    def plotRoute(self,ind,gen):
+        cities_x = [] ## print cities
+        cities_y = []
+        city_labels = [c.name for c in self.cities]
+        cities_x = [c.x for c in genBook1.cities]
+        cities_y = [c.y for c in genBook1.cities]
+        q = plt.plot(cities_x,cities_y,'go',linewidth=0.5)
+        plt.plot(ind.route[0].x,ind.route[0].y,'ro')
+        citiesLen = len(city_labels)
+        for i in range(citiesLen):
+            plt.annotate(city_labels[i],(cities_x[i],cities_y[i]))
+        for i in range(citiesLen-1):
+            currentDistance = ind.route[i].distance(ind.route[i+1])
+            print(currentDistance)
+            plt.arrow(ind.route[i].x, ind.route[i].y, (ind.route[i+1].x - ind.route[i].x), (ind.route[i+1].y-ind.route[i].y), head_width=15, head_length=50, length_includes_head = True, label = str(currentDistance))
+        print()
+        plt.arrow(ind.route[-1].x, ind.route[-1].y, (ind.route[0].x - ind.route[-1].x), (ind.route[0].y-ind.route[-1].y), head_width=15, head_length=50, length_includes_head = True)        
+        plt.ylabel('Y')
+        plt.xlabel('X')
+        t = "Total distance: " + str(ind.totalDistance)
+        plt.title(t)
+        filename = "Gen" + str(gen.gen_id) + " route.png"
+        plt.savefig(filename)
+        plt.close()
 
 ## parameters in the following order:
 ## (Caution: args[0] is reserved for script name, so the indexing starts with 1)
@@ -252,7 +282,7 @@ class genBook():
 
 ## to skip a certain parameter, input 0 and that one will be defaulted
 parameter_names = ["placeholder_name","nInitial","nCities","nGen","XWidth","YWidth","goodRate","badRate","popMax","citiesPath","popMaxSwitch"]
-default_parameters = ["placeholder.py",50, 15, 50, 1000, 1000, 70, 40, 50, "TSP-GA-cities.txt", 0]
+default_parameters = ["placeholder.py",200, 15, 350, 1000, 1000, 70, 40, 50, "TSP-GA-cities.txt", 0]
 
 ## parse console input
 ## sample input: python TSP-GA.py 25 20 30 1500 1500 75 45 50 "TSP-GA-cities.txt" 0
@@ -279,20 +309,11 @@ print(default_parameters)
 
 ## main:
 genBook1 = genBook(default_parameters[1],default_parameters[2],default_parameters[3])
-print(genBook1.gen_book[0].population)
-gen1 = [c.totalDistance for c in genBook1.gen_book[0].population]
-gen_final = [c.totalDistance for c in genBook1.gen_book[genBook1.genCount].population]
-cities_x = []
-cities_y = []
-city_labels = [c.name for c in genBook1.cities]
-cities_x = [c.x for c in genBook1.cities]
-cities_y = [c.y for c in genBook1.cities]
-q = plt.plot(cities_x,cities_y,'go',linewidth=1)
-for i in range(len(city_labels)):
-    plt.annotate(city_labels[i],(cities_x[i],cities_y[i]))
-
-plt.ylabel('some numbers')
-plt.show()
+genBook1.plotDistanceGraph()
+genBook1.plotRoute(genBook.gen_book[0].population[0],genBook1.gen_book[0])
+##print(genBook.gen_book[0].population[0])
+##print(genBook.gen_book[349].population[0])
+genBook1.plotRoute(genBook1.gen_book[349].population[0],genBook1.gen_book[349])
 """ for i in range(default_parameters[3]):
     print(i,genBook1.gen_book[i])
     print() """
