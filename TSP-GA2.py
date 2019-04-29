@@ -282,7 +282,7 @@ class genBook():
 
 ## to skip a certain parameter, input 0 and that one will be defaulted
 parameter_names = ["placeholder_name","nInitial","nCities","nGen","XWidth","YWidth","citiesPath","mRate","eliteSize"]
-default_parameters = ["placeholder.py",1000, 15, 200, 1000, 1000, "TSP-GA-cities.txt", 10, 10]
+default_parameters = ["placeholder.py",100, 15, 100, 1000, 1000, "TSP-GA-cities.txt", 10, 10]
 
 ## parse console input
 ## sample input: python TSP-GA.py 25 20 30 1500 1500 "TSP-GA-cities.txt" 20 20
