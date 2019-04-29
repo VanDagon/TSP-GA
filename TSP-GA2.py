@@ -25,7 +25,7 @@ def generateRoute(cities):
     return route
 
 def readCityFile(f):
-    fi = open(default_parameters[9],"r")
+    fi = open(default_parameters[6],"r")
     cities = []
 
     for line in fi:
@@ -39,11 +39,14 @@ def readCityFile(f):
 
 
 class Individual:
+    count = 0
     def __init__(self,route): 
         self.route = route
         self.totalDistance = 0
         self.totalDistance = self.getDistance()
         self.fitness = float(1 / self.totalDistance)
+        self.id = Individual.count
+        Individual.count += 1
     
     def getDistance(self):
         routeLength = len(self.route)
@@ -73,10 +76,11 @@ class Individual:
         for i in range(start,end):
             gene1.append(self.route[i])
         gene2 = [c for c in parent2.route if c not in gene1]
-
-        for i in range(len(gene1)):
-            gene2.insert(start+i,gene1[i])
-        child = Individual(gene2)
+        res = gene1 + gene2
+        child = Individual(res)
+        ##for i in range(len(gene1)):
+        ##    gene2.insert(start+i,gene1[i])
+        ##child = Individual(gene2)
 
         return child
 
@@ -134,7 +138,7 @@ class generation():
         totalFitness = sum(sortedFitness)
         percentages = [((c*100)/totalFitness) for c in weights]
         total_l = len(self.population)
-        elite_l = int(total_l * 0.20) ## take top 20% as elite 
+        elite_l = int(total_l * (default_parameters[8] / 100)) ## use eliteSize
 
         for i in range(elite_l): ## add elites to new gen
             self.elite.append(sortedPool[i])
@@ -151,7 +155,7 @@ class generation():
         return self.selected 
 
     def mutate(self,gen):
-        mutation_chance = 15
+        mutation_chance = default_parameters[7]
         total_l = len(gen.population)
 
         for i in range(total_l):
@@ -194,10 +198,10 @@ class genBook():
         self.nCities = nCities
         self.nGen = nGen
         self.genCount = 0
-        if (default_parameters[9]=="AUTO"):
+        if (default_parameters[6]=="AUTO"):
             self.cities = self.generateCities()
         else:
-            self.cities = readCityFile(default_parameters[9])
+            self.cities = readCityFile(default_parameters[6])
 
         self.gen_book.append(self.generateInitialPopulation())
 
@@ -253,39 +257,35 @@ class genBook():
             plt.annotate(city_labels[i],(cities_x[i],cities_y[i]))
         for i in range(citiesLen-1):
             currentDistance = ind.route[i].distance(ind.route[i+1])
-            print(currentDistance)
             plt.arrow(ind.route[i].x, ind.route[i].y, (ind.route[i+1].x - ind.route[i].x), (ind.route[i+1].y-ind.route[i].y), head_width=15, head_length=50, length_includes_head = True, label = str(currentDistance))
-        print()
         plt.arrow(ind.route[-1].x, ind.route[-1].y, (ind.route[0].x - ind.route[-1].x), (ind.route[0].y-ind.route[-1].y), head_width=15, head_length=50, length_includes_head = True)        
         plt.ylabel('Y')
         plt.xlabel('X')
         t = "Total distance: " + str(ind.totalDistance)
         plt.title(t)
-        filename = "Gen" + str(gen.gen_id) + " route.png"
+        filename = "Gen" + str(gen.gen_id) + " route" + str(ind.id) +".png"
         plt.savefig(filename)
         plt.close()
 
 ## parameters in the following order:
-## (Caution: args[0] is reserved for script name, so the indexing starts with 1)
+## [0] ==> args[0] is reserved for script name, so the indexing starts with 1
 ## [1] nInitial ==> quantity of individuals in initial generation
 ## [2] nCities ==> number of cities, only used for auto-generated cities (in conjunction with "AUTO" in param 9)
 ## [3] nGen ==> number of generations to be bred
 ## [4] XWidth ==> width of x-coordinate of the map
 ## [5] YWidth ==> width of y-coordinate of the map
-## [6] goodRate ==> percent chance that a 'good' individual (with below mean totalDistance) will be selected
-## [7] badRate ==> percent chance that a 'bad' individual (with above mean totalDistance) will be selected
-## [8] popMax ==> the hard cap on quantity of individuals in every generation ## not implemented yet
-## [9] citiesPath ==> path to the file that contains cities 
+## [6] citiesPath ==> path to the file that contains cities 
 ##     file formatting should be one city per line ==> [Cityname][whitespace][x-coordinate][whitespace][y-coordinate][endline] 
 ##     input the word "AUTO" to generate random cities
-## [10] popMaxSwitch ==> switch for hard cap on population (for parameter 9), has value 0 or 1
+## [7] mRate ==> mutationRate (Percent)
+## [8] eliteSize ==> size of elite population (top percentage)
 
 ## to skip a certain parameter, input 0 and that one will be defaulted
-parameter_names = ["placeholder_name","nInitial","nCities","nGen","XWidth","YWidth","goodRate","badRate","popMax","citiesPath","popMaxSwitch"]
-default_parameters = ["placeholder.py",200, 15, 350, 1000, 1000, 70, 40, 50, "TSP-GA-cities.txt", 0]
+parameter_names = ["placeholder_name","nInitial","nCities","nGen","XWidth","YWidth","citiesPath","mRate","eliteSize"]
+default_parameters = ["placeholder.py",1000, 15, 200, 1000, 1000, "TSP-GA-cities.txt", 10, 10]
 
 ## parse console input
-## sample input: python TSP-GA.py 25 20 30 1500 1500 75 45 50 "TSP-GA-cities.txt" 0
+## sample input: python TSP-GA.py 25 20 30 1500 1500 "TSP-GA-cities.txt" 20 20
 argCount = len(sys.argv)
 if (argCount < 2):
     print("All parameters set to default values.")
@@ -295,7 +295,7 @@ if (argCount > len(default_parameters)):
 
 for i in range(1,argCount):
     if (sys.argv[i] != "0"):
-        if (i==9):
+        if (i==6):
             default_parameters[i] = sys.argv[i]
             print("parameter",i,":",parameter_names[i],"set to",sys.argv[i])
         else:
@@ -311,9 +311,6 @@ print(default_parameters)
 genBook1 = genBook(default_parameters[1],default_parameters[2],default_parameters[3])
 genBook1.plotDistanceGraph()
 genBook1.plotRoute(genBook.gen_book[0].population[0],genBook1.gen_book[0])
-##print(genBook.gen_book[0].population[0])
-##print(genBook.gen_book[349].population[0])
-genBook1.plotRoute(genBook1.gen_book[349].population[0],genBook1.gen_book[349])
-""" for i in range(default_parameters[3]):
-    print(i,genBook1.gen_book[i])
-    print() """
+genBook1.plotRoute(genBook.gen_book[0].population[default_parameters[1]-1],genBook1.gen_book[0])
+genBook1.plotRoute(genBook1.gen_book[default_parameters[3]-1].population[0],genBook1.gen_book[default_parameters[3]-1])
+genBook1.plotRoute(genBook1.gen_book[default_parameters[3]-1].population[default_parameters[1]-1],genBook1.gen_book[default_parameters[3]-1])
