@@ -1,0 +1,7 @@
+London 100 750
+Barcelona 0 0 
+NYC 0 600
+Hong_Kong 770 460
+Tokyo 960 780
+Moscow 440 890
+Singapore 850 120
