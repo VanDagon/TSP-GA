@@ -1,4 +1,4 @@
-### obsolete
+### old version ###
 
 import math, random, pip as np
 
